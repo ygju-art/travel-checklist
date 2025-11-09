@@ -9,12 +9,12 @@ const state = {
 
 const templates = {
   basic: ['여권','지갑/신용카드','현지 화폐','충전기','보조배터리','마스크','물티슈','속옷/양말','상의/하의','세면도구','우산/우비'],
-  europe: ['여권','국제운전면허증','현지 화폐','플러그 어댑터(Type C/E/F)','보온 자켓','목도리/장갑','로션/립밤','비상약(감기/소화)','트래블 카드','현지 유심/eSIM','휴대용 손세정제'],
-  beach: ['여권','수영복','현지 화폐','선크림','선글라스','비치타월','모자','방수팩','슬리퍼','얇은 겉옷','모기기피제'],
+  europe: ['여권','국제운전면허증','현지 화폐','플러그 어댑터(Type C/E/F)','보온 자켓','목도리/장갑','로션/립밤','비상약(감기/소화)','트래블카드','현지 유심/eSIM','휴대용 손세정제'],
+  beach: ['여권','현지 화폐','수영복','선크림','선글라스','비치타월','모자','방수팩','슬리퍼','얇은 겉옷','모기기피제'],
   business: ['여권','현지 화폐','노트북/충전기','프레젠테이션 파일','명함','정장/구두','면도도구','가벼운 간식','멀티탭','여분 케이블']
 };
 
-// --- utils ---
+// ---------- utils ----------
 function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 function load(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback } }
 const uid = () => Math.random().toString(36).slice(2,9);
@@ -24,12 +24,12 @@ const daysLeft = (dateStr) => {
   return Math.round((one - now) / (1000*60*60*24));
 };
 function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({
+  return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 }
 
-// --- elements ---
+// ---------- elements ----------
 const tripName   = $('#tripName');
 const tripDate   = $('#tripDate');
 const templateSelect = $('#templateSelect');
@@ -50,7 +50,7 @@ if(!addTripBtn || !tripList){
   console.error('[app] essential elements not found. Check IDs and script path.');
 }
 
-// PWA install prompt
+// ---------- PWA install ----------
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -65,15 +65,15 @@ installBtn?.addEventListener('click', async () => {
   installBtn?.classList.add('hidden');
 });
 
-// --- add trip (click & Enter on inputs) ---
+// ---------- Add Trip (버튼/Enter) ----------
 function tryAddTrip(){
   const name = (tripName?.value || '').trim();
   const date = tripDate?.value || '';
   if(!name || !date){
-    if(formHelp) formHelp.classList.remove('hidden');
+    formHelp?.classList.remove('hidden');
     return;
   }
-  if(formHelp) formHelp.classList.add('hidden');
+  formHelp?.classList.add('hidden');
 
   const items = (templates[templateSelect?.value] || []).map(t=>({id:uid(), text:t, done:false}));
   state.trips.push({ id: uid(), name, date, items });
@@ -86,7 +86,7 @@ addTripBtn?.addEventListener('click', tryAddTrip);
 tripName?.addEventListener('keydown', e => { if(e.key==='Enter') tryAddTrip(); });
 tripDate?.addEventListener('keydown', e => { if(e.key==='Enter') tryAddTrip(); });
 
-// export/import (전체 백업/복원)
+// ---------- Backup / Restore ----------
 exportBtn?.addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state.trips, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -94,26 +94,70 @@ exportBtn?.addEventListener('click', () => {
   a.download = 'travel-data.json';
   a.click();
 });
+
+// 복원: 다양한 JSON 형태 지원 + 정규화
 importInput?.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
-  if(!file) return;
+  if (!file) return;
+
   try {
-    const txt = await file.text();
-    const data = JSON.parse(txt);
-    if(!Array.isArray(data)) throw new Error('형식 오류');
-    state.trips = data; persistAndRender();
-    alert('복원 완료!');
-  } catch(err){
-    alert('복원 실패: ' + err.message);
-  } finally { e.target.value = ''; }
+    const text = await file.text();
+    const trips = normalizeTripsFromJSON(text);
+
+    if (!Array.isArray(trips) || trips.length === 0) {
+      throw new Error('복원할 여행 데이터가 없습니다.');
+    }
+    state.trips = trips;
+    persistAndRender();
+    alert(`복원 완료! 총 ${trips.length}개의 여행이 로드되었습니다.`);
+  } catch (err) {
+    console.error('[import] failed:', err);
+    alert('복원 실패: ' + (err.message || '파일 형식 오류'));
+  } finally {
+    e.target.value = '';
+  }
 });
 
+function normalizeTripsFromJSON(text) {
+  let data;
+  try {
+    const clean = text.replace(/^\uFEFF/, ''); // BOM 제거
+    data = JSON.parse(clean);
+  } catch {
+    throw new Error('JSON 파싱 실패');
+  }
+  if (Array.isArray(data)) return data.map(normalizeTripObject);
+  if (data && Array.isArray(data.trips)) return data.trips.map(normalizeTripObject);
+  if (data && typeof data === 'object' && data.name && Array.isArray(data.items)) {
+    return [normalizeTripObject(data)];
+  }
+  throw new Error('지원하지 않는 JSON 형식입니다.');
+}
+
+function normalizeTripObject(t) {
+  const id = t.id || uid();
+  const name = String(t.name ?? '').trim();
+  const date = String(t.date ?? '').trim();
+  if (!name || !date) throw new Error('여행 이름/출발일이 없습니다.');
+
+  const items = Array.isArray(t.items) ? t.items : [];
+  const normItems = items.map((it) => {
+    const text = String(it?.text ?? '').trim();
+    const done = !!it?.done;
+    const id = it?.id || uid();
+    return { id, text, done };
+  }).filter(it => it.text);
+
+  return { id, name, date, items: normItems };
+}
+
+// ---------- Core render ----------
 function persistAndRender(){
   save('trips', state.trips);
   render();
 }
 
-// render (카드에 진행도바 포함)
+// 카드 목록 + 진행도바
 function render(){
   state.trips.sort((a,b)=> new Date(a.date) - new Date(b.date));
   tripList.innerHTML = '';
@@ -156,6 +200,7 @@ function render(){
   });
 }
 
+// 상세 다이얼로그 (드래그 정렬, CSV, 진행도바, 닫힘 방지)
 function openTrip(id){
   const trip = state.trips.find(t=>t.id===id); if(!trip) return;
   dialogTitle.textContent = `${trip.name} — 체크리스트`;
@@ -175,6 +220,7 @@ function openTrip(id){
     </div>`;
   dialogContent.appendChild(top);
 
+  // 진행도바(상세)
   const progressWrap = document.createElement('div');
   progressWrap.className = 'space-y-1';
   progressWrap.innerHTML = `
@@ -185,20 +231,22 @@ function openTrip(id){
   `;
   dialogContent.appendChild(progressWrap);
 
+  // 리스트
   const list = document.createElement('ul');
   list.className = 'divide-y';
   trip.items.forEach(item => list.appendChild(renderItem(trip, item)));
   dialogContent.appendChild(list);
 
+  // 통계
   const stats = document.createElement('div');
   stats.className = 'text-xs text-slate-500 pt-2';
   stats.id = 'stats';
   dialogContent.appendChild(stats);
   updateStats(trip, stats, progressWrap);
 
+  // 입력핸들러(닫힘 방지)
   const newItemInput = top.querySelector('#newItemInput');
   const addItemBtn = top.querySelector('#addItemBtn');
-
   const addItem = (e) => {
     if (e) e.preventDefault();
     const text = newItemInput.value.trim();
@@ -210,11 +258,13 @@ function openTrip(id){
   newItemInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addItem(); }});
   addItemBtn.addEventListener('click', addItem);
 
+  // 완료 항목 일괄 삭제
   top.querySelector('#clearDoneBtn').addEventListener('click', ()=>{
     trip.items = trip.items.filter(i=>!i.done);
     persistDialog();
   });
 
+  // CSV 내보내기(현재 여행만)
   top.querySelector('#exportCsvBtn').addEventListener('click', ()=>{
     const csv = toCSV(trip);
     const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
@@ -224,6 +274,7 @@ function openTrip(id){
     a.click();
   });
 
+  // 드래그 정렬
   list.addEventListener('dragover', (e)=> e.preventDefault());
 
   function renderItem(trip, item){
@@ -277,10 +328,12 @@ function openTrip(id){
 
   function persistDialog(keepFocus){
     save('trips', state.trips);
+    // 상세 리렌더 + 진행도 갱신
     list.innerHTML = '';
     trip.items.forEach(item => list.appendChild(renderItem(trip, item)));
     updateStats(trip, stats, progressWrap);
-    render(); // 카드 진행도도 갱신
+    // 카드 진행도 갱신
+    render();
     if(keepFocus) newItemInput.focus();
   }
 
@@ -289,6 +342,7 @@ function openTrip(id){
   dialog.addEventListener('click', (e)=>{ if(e.target===dialog) dialog.close(); });
 }
 
+// 진행도/통계 갱신
 function updateStats(trip, el, progressWrap){
   const done = trip.items.filter(i=>i.done).length;
   const total = trip.items.length || 1;
@@ -302,6 +356,7 @@ function updateStats(trip, el, progressWrap){
   }
 }
 
+// 기타 도우미
 function duplicateTrip(id){
   const t = state.trips.find(x=>x.id===id); if(!t) return;
   const copy = JSON.parse(JSON.stringify(t));
@@ -310,19 +365,16 @@ function duplicateTrip(id){
   copy.items.forEach(i=> i.id = uid());
   state.trips.push(copy); persistAndRender();
 }
-
 function editTrip(id){
   const t = state.trips.find(x=>x.id===id); if(!t) return;
   const name = prompt('여행 이름', t.name) ?? t.name;
   const date = prompt('출발일 (YYYY-MM-DD)', t.date) ?? t.date;
   if(name && date){ t.name = name; t.date = date; persistAndRender(); }
 }
-
 function deleteTrip(id){
   if(!confirm('삭제하시겠어요?')) return;
   state.trips = state.trips.filter(t=>t.id!==id); persistAndRender();
 }
-
 function toCSV(trip){
   const header = ['text','done'];
   const rows = trip.items.map(i => [
@@ -332,4 +384,5 @@ function toCSV(trip){
   return '\uFEFF' + [header.join(','), ...rows.map(r=>r.join(','))].join('\r\n');
 }
 
+// 첫 렌더
 render();
