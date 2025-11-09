@@ -58,13 +58,12 @@ addTripBtn?.addEventListener('click', () => {
   if(!name || !date) return alert('여행 이름과 출발일을 입력하세요.');
   const items = (templates[templateSelect.value]||[]).map(t=>({id:uid(), text:t, done:false}));
   state.trips.push({ id: uid(), name, date, items });
-  save('trips', state.trips);
-  render();
+  persistAndRender();
   tripName.value = '';
   tripDate.value = '';
 });
 
-// export/import
+// export/import (전체 백업/복원)
 exportBtn?.addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state.trips, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -79,19 +78,28 @@ importInput?.addEventListener('change', async (e) => {
     const txt = await file.text();
     const data = JSON.parse(txt);
     if(!Array.isArray(data)) throw new Error('형식 오류');
-    state.trips = data; save('trips', state.trips); render();
+    state.trips = data; persistAndRender();
     alert('복원 완료!');
   } catch(err){
     alert('복원 실패: ' + err.message);
   } finally { e.target.value = ''; }
 });
 
-// render
+function persistAndRender(){
+  save('trips', state.trips);
+  render();
+}
+
+// render (카드에 진행도바 포함)
 function render(){
   state.trips.sort((a,b)=> new Date(a.date) - new Date(b.date));
   tripList.innerHTML = '';
   state.trips.forEach(trip => {
     const d = daysLeft(trip.date);
+    const done = trip.items.filter(i=>i.done).length;
+    const total = trip.items.length || 1;
+    const pct = Math.round((done / total) * 100);
+
     const li = document.createElement('li');
     li.className = 'card';
     li.innerHTML = `
@@ -102,6 +110,15 @@ function render(){
         </div>
         <span class="chip ${d<0?'bg-rose-100 text-rose-700':''}">${d===0?'D-DAY': d>0?`D-${d}`:`+${Math.abs(d)}`}</span>
       </div>
+
+      <!-- 진행도바 -->
+      <div class="space-y-1">
+        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-2 bg-sky-500 rounded-full" style="width:${pct}%"></div>
+        </div>
+        <div class="text-xs text-slate-500">진행도: ${done} / ${total} (${pct}%)</div>
+      </div>
+
       <div class="flex items-center gap-2">
         <button class="btn-secondary" data-open>체크리스트</button>
         <button class="btn-secondary" data-dup>복제</button>
@@ -122,7 +139,7 @@ function openTrip(id){
   dialogTitle.textContent = `${trip.name} — 체크리스트`;
   dialogContent.innerHTML = '';
 
-  // 상단: 출발일, "아이템 추가" 입력 + 버튼
+  // 상단: 출발일, 입력 + 버튼들
   const top = document.createElement('div');
   top.className = 'flex flex-wrap items-center gap-2 justify-between';
   top.innerHTML = `
@@ -133,52 +150,130 @@ function openTrip(id){
       <input class="input" id="newItemInput" placeholder="아이템 추가 (예: 칫솔)" />
       <button class="btn-secondary" id="addItemBtn">추가</button>
       <button class="btn-secondary" id="clearDoneBtn">완료 삭제</button>
+      <button class="btn-secondary" id="exportCsvBtn">CSV 내보내기</button>
     </div>`;
   dialogContent.appendChild(top);
 
+  // 진행도바(상세)
+  const progressWrap = document.createElement('div');
+  progressWrap.className = 'space-y-1';
+  progressWrap.innerHTML = `
+    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+      <div id="progressBar" class="h-2 bg-sky-500 rounded-full" style="width:0%"></div>
+    </div>
+    <div id="progressText" class="text-xs text-slate-500">진행도: 0 / 0 (0%)</div>
+  `;
+  dialogContent.appendChild(progressWrap);
+
+  // 리스트
   const list = document.createElement('ul');
   list.className = 'divide-y';
   trip.items.forEach(item => list.appendChild(renderItem(trip, item)));
   dialogContent.appendChild(list);
 
+  // 통계
   const stats = document.createElement('div');
   stats.className = 'text-xs text-slate-500 pt-2';
   stats.id = 'stats';
   dialogContent.appendChild(stats);
-  updateStats(trip, stats);
+  updateStats(trip, stats, progressWrap);
 
-  // 입력핸들러: 엔터키 & 버튼 클릭 둘 다 지원 (닫힘 방지)
+  // 입력핸들러(닫힘 방지)
   const newItemInput = top.querySelector('#newItemInput');
   const addItemBtn = top.querySelector('#addItemBtn');
-
   const addItem = (e) => {
-    if (e) e.preventDefault(); // ✅ 자동 제출 방지
+    if (e) e.preventDefault();
     const text = newItemInput.value.trim();
     if(!text) return;
     trip.items.push({ id: uid(), text, done: false });
-    save('trips', state.trips);
+    persistDialog();
     newItemInput.value = '';
-    rerenderList();
   };
-
-  newItemInput.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){
-      e.preventDefault();      // ✅ dialog 자동 닫힘 방지
-      addItem();
-    }
-  });
+  newItemInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addItem(); }});
   addItemBtn.addEventListener('click', addItem);
 
+  // 완료 항목 일괄 삭제
   top.querySelector('#clearDoneBtn').addEventListener('click', ()=>{
     trip.items = trip.items.filter(i=>!i.done);
-    save('trips', state.trips);
-    rerenderList();
+    persistDialog();
   });
 
-  function rerenderList(){
-    list.innerHTML='';
+  // CSV 내보내기(현재 여행만)
+  top.querySelector('#exportCsvBtn').addEventListener('click', ()=>{
+    const csv = toCSV(trip);
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${trip.name.replace(/\\s+/g,'_')}.csv`;
+    a.click();
+  });
+
+  // 드래그 정렬 지원
+  list.addEventListener('dragover', (e)=> e.preventDefault());
+
+  function renderItem(trip, item){
+    const li = document.createElement('li');
+    li.className = 'py-2 px-1 flex items-center gap-2';
+    li.draggable = true;
+    li.dataset.id = item.id;
+    li.innerHTML = `
+      <span class="cursor-grab select-none" title="끌어서 순서 변경">↕</span>
+      <input type="checkbox" ${item.done?'checked':''} class="h-5 w-5" />
+      <span class="grow ${item.done?'line-through text-slate-400':''}">${escapeHtml(item.text)}</span>
+      <button class="btn-icon" title="삭제">🗑️</button>
+    `;
+    const [dragHandle, chk, , delBtn] = li.children;
+
+    // 체크 변경
+    chk.addEventListener('change', ()=>{
+      item.done = chk.checked;
+      persistDialog(true);
+    });
+
+    // 삭제
+    delBtn.addEventListener('click', ()=>{
+      trip.items = trip.items.filter(i=>i.id!==item.id);
+      persistDialog();
+    });
+
+    // 드래그 앤 드롭
+    li.addEventListener('dragstart', (e)=>{
+      e.dataTransfer.setData('text/plain', item.id);
+      li.classList.add('opacity-50');
+    });
+    li.addEventListener('dragend', ()=> li.classList.remove('opacity-50'));
+    li.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      li.classList.add('bg-slate-50');
+    });
+    li.addEventListener('dragleave', ()=> li.classList.remove('bg-slate-50'));
+    li.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      li.classList.remove('bg-slate-50');
+      const fromId = e.dataTransfer.getData('text/plain');
+      if(!fromId || fromId===item.id) return;
+
+      const fromIdx = trip.items.findIndex(i=>i.id===fromId);
+      const toIdx   = trip.items.findIndex(i=>i.id===item.id);
+      if(fromIdx<0 || toIdx<0) return;
+
+      const [moved] = trip.items.splice(fromIdx,1);
+      trip.items.splice(toIdx,0,moved);
+      persistDialog();
+    });
+
+    return li;
+  }
+
+  function persistDialog(keepFocus){
+    save('trips', state.trips);
+    // 상세 리스트 리렌더
+    list.innerHTML = '';
     trip.items.forEach(item => list.appendChild(renderItem(trip, item)));
-    updateStats(trip, stats);
+    updateStats(trip, stats, progressWrap);
+    // 카드 쪽 진행도 갱신을 위해 전체도 다시 그림
+    render();
+    if(keepFocus) newItemInput.focus();
   }
 
   dialog.showModal();
@@ -186,58 +281,13 @@ function openTrip(id){
   dialog.addEventListener('click', (e)=>{ if(e.target===dialog) dialog.close(); });
 }
 
-function renderItem(trip, item){
-  const li = document.createElement('li');
-  li.className = 'py-2 flex items-center gap-2';
-  li.innerHTML = `
-    <input type="checkbox" ${item.done?'checked':''} class="h-5 w-5" />
-    <span class="grow ${item.done?'line-through text-slate-400':''}">${escapeHtml(item.text)}</span>
-    <button class="btn-icon" title="삭제">🗑️</button>
-  `;
-  const [chk, , delBtn] = li.children;
-  chk.addEventListener('change', ()=>{ item.done = chk.checked; save('trips', state.trips); });
-  delBtn.addEventListener('click', ()=>{
-    trip.items = trip.items.filter(i=>i.id!==item.id);
-    save('trips', state.trips);
-    li.remove();
-  });
-  return li;
-}
-
-function updateStats(trip, el){
+function updateStats(trip, el, progressWrap){
   const done = trip.items.filter(i=>i.done).length;
-  el.textContent = `완료 ${done} / 전체 ${trip.items.length}`;
-}
-
-function duplicateTrip(id){
-  const t = state.trips.find(x=>x.id===id); if(!t) return;
-  const copy = JSON.parse(JSON.stringify(t));
-  copy.id = uid();
-  copy.name = t.name + ' (복사본)';
-  copy.items.forEach(i=> i.id = uid());
-  state.trips.push(copy);
-  save('trips', state.trips);
-  render();
-}
-
-function editTrip(id){
-  const t = state.trips.find(x=>x.id===id); if(!t) return;
-  const name = prompt('여행 이름', t.name) ?? t.name;
-  const date = prompt('출발일 (YYYY-MM-DD)', t.date) ?? t.date;
-  if(name && date){
-    t.name = name; t.date = date;
-    save('trips', state.trips);
-    render();
-  }
-}
-
-function deleteTrip(id){
-  if(!confirm('삭제하시겠어요?')) return;
-  state.trips = state.trips.filter(t=>t.id!==id);
-  save('trips', state.trips);
-  render();
-}
-
-function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;","&gt;":">","\"":"&quot;","'":"&#39;"}[c])); }
-
-render();
+  const total = trip.items.length || 1;
+  const pct = Math.round((done/total)*100);
+  el.textContent = `완료 ${done} / 전체 ${total}`;
+  if(progressWrap){
+    const bar = $('#progressBar', progressWrap);
+    const txt = $('#progressText', progressWrap);
+    if(bar) bar.style.width = `${pct}%`;
+    if(txt) txt.textConten
