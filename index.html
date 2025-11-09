@@ -56,6 +56,7 @@
       <ul id="tripList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></ul>
     </section>
 
+    <!-- form 대신 div: Enter로도 닫히지 않게 -->
     <dialog id="tripDialog" class="modal">
       <div class="modal-box">
         <header class="flex items-center justify-between mb-3">
@@ -71,8 +72,8 @@
     <p>모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 오프라인에서도 사용 가능.</p>
   </footer>
 
-  <!-- 스크립트는 반드시 바디 맨 아래에 있어야 함 -->
-  <script src="/assets/app.js" type="module"></script>
+  <!-- 캐시이슈 줄이려면 v=숫자 올려 사용 가능 -->
+  <script src="/assets/app.js?v=4" type="module"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
