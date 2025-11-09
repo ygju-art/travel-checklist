@@ -55,7 +55,7 @@
       <ul id="tripList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></ul>
     </section>
 
-    <!-- ✅ form(method="dialog") 대신 div로 바꿔 자동 닫힘 방지 -->
+    <!-- form -> div 로 유지: 엔터 눌러도 닫히지 않게 -->
     <dialog id="tripDialog" class="modal">
       <div class="modal-box">
         <header class="flex items-center justify-between mb-3">
@@ -68,7 +68,7 @@
   </main>
 
   <footer class="max-w-5xl mx-auto px-4 py-8 text-xs text-slate-500">
-    <p>모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 로그인/서버 불필요. 오프라인 지원.</p>
+    <p>모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 오프라인에서도 사용 가능.</p>
   </footer>
 
   <script src="/assets/app.js" type="module"></script>
