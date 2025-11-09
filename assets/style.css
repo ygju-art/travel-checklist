@@ -1,0 +1,11 @@
+:root { --ring: 0 0% 0%; }
+.btn-primary { @apply bg-sky-600 text-white rounded-2xl px-4 py-2 shadow hover:bg-sky-700 active:scale-[.99] transition; }
+.btn-secondary { @apply border border-slate-300 bg-white text-slate-700 rounded-2xl px-3 py-2 shadow-sm hover:bg-slate-50; }
+.btn-link { @apply text-sky-700 underline underline-offset-4 hover:no-underline; }
+.btn-icon { @apply w-8 h-8 grid place-content-center rounded-full hover:bg-slate-100; }
+.input { @apply border border-slate-300 rounded-xl px-3 py-2 shadow-sm bg-white w-full; }
+.chip { @apply inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-slate-100; }
+.card { @apply rounded-2xl border bg-white shadow-sm p-4 flex flex-col gap-3; }
+.modal { @apply fixed inset-0 p-0 bg-black/30 backdrop-blur hidden; }
+.modal[open] { display: grid; place-items: center; }
+.modal-box { @apply bg-white rounded-2xl shadow-xl p-4 w-[min(92vw,720px)]; }
