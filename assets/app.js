@@ -42,9 +42,10 @@ const dialogTitle   = $('#dialogTitle');
 const dialogContent = $('#dialogContent');
 const closeDialogBtn = $('#closeDialogBtn');
 
-const exportBtn  = $('#exportBtn');
-const importInput= $('#importInput');
-const installBtn = $('#installBtn');
+const exportBtn        = $('#exportBtn');
+const importInput      = $('#importInput');
+const importMergeInput = $('#importMergeInput');
+const installBtn       = $('#installBtn');
 
 if(!addTripBtn || !tripList){
   console.error('[app] essential elements not found. Check IDs and script path.');
@@ -95,18 +96,14 @@ exportBtn?.addEventListener('click', () => {
   a.click();
 });
 
-// 복원: 다양한 JSON 형태 지원 + 정규화
+// (A) 완전 덮어쓰기 복원
 importInput?.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
-
   try {
     const text = await file.text();
     const trips = normalizeTripsFromJSON(text);
-
-    if (!Array.isArray(trips) || trips.length === 0) {
-      throw new Error('복원할 여행 데이터가 없습니다.');
-    }
+    if (!Array.isArray(trips) || trips.length === 0) throw new Error('복원할 여행 데이터가 없습니다.');
     state.trips = trips;
     persistAndRender();
     alert(`복원 완료! 총 ${trips.length}개의 여행이 로드되었습니다.`);
@@ -118,6 +115,29 @@ importInput?.addEventListener('change', async (e) => {
   }
 });
 
+// ✅ (B) 병합 복원: 기존 데이터에 가져온 데이터를 합치기
+importMergeInput?.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const incoming = normalizeTripsFromJSON(text);
+    if (!Array.isArray(incoming) || incoming.length === 0) throw new Error('병합할 여행 데이터가 없습니다.');
+
+    const result = mergeTrips(state.trips, incoming);
+    state.trips = result.trips;
+    persistAndRender();
+
+    alert(`병합 완료! 추가된 여행 ${result.addedTrips}개, 기존 여행에 합쳐진 항목 ${result.mergedItems}개, 중복으로 건너뛴 항목 ${result.skippedItems}개.`);
+  } catch (err) {
+    console.error('[import-merge] failed:', err);
+    alert('병합 실패: ' + (err.message || '파일 형식 오류'));
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// 다양한 JSON 형태를 유연하게 처리
 function normalizeTripsFromJSON(text) {
   let data;
   try {
@@ -134,6 +154,7 @@ function normalizeTripsFromJSON(text) {
   throw new Error('지원하지 않는 JSON 형식입니다.');
 }
 
+// trip 객체 필드 보정
 function normalizeTripObject(t) {
   const id = t.id || uid();
   const name = String(t.name ?? '').trim();
@@ -151,13 +172,59 @@ function normalizeTripObject(t) {
   return { id, name, date, items: normItems };
 }
 
-// ---------- Core render ----------
-function persistAndRender(){
-  save('trips', state.trips);
-  render();
+// ✅ 병합 규칙
+// - 같은 여행 판단: name + date 동일(대소문자 무시, 공백 트림)
+// - 같은 아이템 판단: text 동일(대소문자 무시, 공백 트림)
+// - done 충돌: 둘 중 하나라도 true면 true(OR)
+function mergeTrips(existing, incoming){
+  const keyTrip = (t) => `${t.name}`.trim().toLowerCase() + '|' + `${t.date}`.trim();
+  const keyItem = (i) => `${i.text}`.trim().toLowerCase();
+
+  const map = new Map();
+  existing.forEach(t => map.set(keyTrip(t), t));
+
+  let addedTrips = 0, mergedItems = 0, skippedItems = 0;
+
+  incoming.forEach(t => {
+    const k = keyTrip(t);
+    if(!map.has(k)){
+      // 새 여행 추가
+      const copy = JSON.parse(JSON.stringify(t));
+      if(!copy.id) copy.id = uid();
+      copy.items = (copy.items||[]).map(i => ({ id: i.id || uid(), text: i.text, done: !!i.done }));
+      existing.push(copy);
+      map.set(k, copy);
+      addedTrips++;
+    } else {
+      // 기존 여행에 병합
+      const target = map.get(k);
+      const itemMap = new Map(target.items.map(i => [keyItem(i), i]));
+      t.items.forEach(src => {
+        const ik = keyItem(src);
+        if(!ik) return;
+        if(itemMap.has(ik)){
+          // 중복 → done 병합(OR)
+          const dest = itemMap.get(ik);
+          const before = dest.done;
+          dest.done = !!(dest.done || src.done);
+          if(dest.done && !before) mergedItems++;
+          else skippedItems++;
+        } else {
+          // 신규 아이템 추가
+          const fresh = { id: src.id || uid(), text: src.text, done: !!src.done };
+          target.items.push(fresh);
+          mergedItems++;
+        }
+      });
+    }
+  });
+
+  return { trips: existing, addedTrips, mergedItems, skippedItems };
 }
 
-// 카드 목록 + 진행도바
+// ---------- Core render ----------
+function persistAndRender(){ save('trips', state.trips); render(); }
+
 function render(){
   state.trips.sort((a,b)=> new Date(a.date) - new Date(b.date));
   tripList.innerHTML = '';
