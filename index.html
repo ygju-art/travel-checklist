@@ -32,11 +32,11 @@
       <div class="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
         <div class="grow">
           <label class="block text-sm font-medium">여행 이름</label>
-          <input id="tripName" class="input" placeholder="예: 스페인 가을여행" />
+          <input id="tripName" class="input" placeholder="예: 스페인 가을여행" required />
         </div>
         <div>
           <label class="block text-sm font-medium">출발일</label>
-          <input id="tripDate" type="date" class="input" />
+          <input id="tripDate" type="date" class="input" required />
         </div>
         <div>
           <label class="block text-sm font-medium">체크리스트 템플릿</label>
@@ -49,13 +49,13 @@
         </div>
         <button id="addTripBtn" class="btn-primary self-stretch sm:self-auto">여행 추가</button>
       </div>
+      <p id="formHelp" class="text-sm text-rose-600 mt-2 hidden">여행 이름과 출발일을 입력해 주세요.</p>
     </section>
 
     <section>
       <ul id="tripList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></ul>
     </section>
 
-    <!-- form -> div 로 유지: 엔터 눌러도 닫히지 않게 -->
     <dialog id="tripDialog" class="modal">
       <div class="modal-box">
         <header class="flex items-center justify-between mb-3">
@@ -71,6 +71,7 @@
     <p>모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 오프라인에서도 사용 가능.</p>
   </footer>
 
+  <!-- 스크립트는 반드시 바디 맨 아래에 있어야 함 -->
   <script src="/assets/app.js" type="module"></script>
   <script>
     if ('serviceWorker' in navigator) {
