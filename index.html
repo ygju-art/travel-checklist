@@ -19,9 +19,16 @@
       <div class="flex items-center gap-2">
         <button id="installBtn" class="btn-secondary hidden">앱 설치</button>
         <button id="exportBtn" class="btn-secondary">백업</button>
+
         <label class="btn-secondary cursor-pointer">
           복원<input id="importInput" type="file" accept="application/json" class="hidden" />
         </label>
+
+        <!-- ✅ 추가: 병합 복원 -->
+        <label class="btn-secondary cursor-pointer">
+          병합 복원<input id="importMergeInput" type="file" accept="application/json" class="hidden" />
+        </label>
+
         <a href="https://github.com/" target="_blank" class="btn-link">GitHub</a>
       </div>
     </div>
@@ -72,8 +79,7 @@
     <p>모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 오프라인에서도 사용 가능.</p>
   </footer>
 
-  <!-- 캐시이슈 줄이려면 v=숫자 올려 사용 가능 -->
-  <script src="/assets/app.js?v=4" type="module"></script>
+  <script src="/assets/app.js?v=5" type="module"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
