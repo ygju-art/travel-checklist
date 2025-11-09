@@ -147,10 +147,12 @@ function openTrip(id){
   dialogContent.appendChild(stats);
   updateStats(trip, stats);
 
-  // 입력핸들러: 엔터키 & 버튼 클릭 둘 다 지원
+  // 입력핸들러: 엔터키 & 버튼 클릭 둘 다 지원 (닫힘 방지)
   const newItemInput = top.querySelector('#newItemInput');
   const addItemBtn = top.querySelector('#addItemBtn');
-  const addItem = () => {
+
+  const addItem = (e) => {
+    if (e) e.preventDefault(); // ✅ 자동 제출 방지
     const text = newItemInput.value.trim();
     if(!text) return;
     trip.items.push({ id: uid(), text, done: false });
@@ -158,7 +160,13 @@ function openTrip(id){
     newItemInput.value = '';
     rerenderList();
   };
-  newItemInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addItem(); });
+
+  newItemInput.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();      // ✅ dialog 자동 닫힘 방지
+      addItem();
+    }
+  });
   addItemBtn.addEventListener('click', addItem);
 
   top.querySelector('#clearDoneBtn').addEventListener('click', ()=>{
@@ -230,6 +238,6 @@ function deleteTrip(id){
   render();
 }
 
-function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;","&gt;":">","\"":"&quot;","'":"&#39;"}[c])); }
 
 render();
