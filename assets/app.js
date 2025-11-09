@@ -6,17 +6,16 @@ const state = {
 };
 
 const templates = {
-   basic: ['여권','지갑/신용카드','현지 화폐','충전기','보조배터리','마스크','물티슈','속옷/양말','상의/하의','세면도구','우산/우비'],
-   europe: ['여권','국제운전면허증','현지 화폐','플러그 어댑터(Type C/E/F)','보온 자켓','목도리/장갑','로션/립밤','비상약(감기/소화)','트래블 카드','현지 유심/eSIM','휴대용 손세정제'],
-   beach: ['여권','수영복','현지 화폐','선크림','선글라스','비치타월','모자','방수팩','슬리퍼','얇은 겉옷','모기기피제'],
-   business: ['여권','현지 화폐','노트북/충전기','프레젠테이션 파일','명함','정장/구두','면도도구','가벼운 간식','멀티탭','여분 케이블']
+  basic: ['여권','지갑/신용카드','현지 화폐','충전기','보조배터리','마스크','물티슈','속옷/양말','상의/하의','세면도구','우산/우비'],
+  europe: ['여권','국제운전면허증','현지 화폐','플러그 어댑터(Type C/E/F)','보온 자켓','목도리/장갑','로션/립밤','비상약(감기/소화)','트래블 카드','현지 유심/eSIM','휴대용 손세정제'],
+  beach: ['여권','수영복','현지 화폐','선크림','선글라스','비치타월','모자','방수팩','슬리퍼','얇은 겉옷','모기기피제'],
+  business: ['여권','현지 화폐','노트북/충전기','프레젠테이션 파일','명함','정장/구두','면도도구','가벼운 간식','멀티탭','여분 케이블']
 };
 
 // --- utils ---
 function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 function load(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback } }
 const uid = () => Math.random().toString(36).slice(2,9);
-const genId = () => (crypto?.randomUUID ? crypto.randomUUID() : `${uid()}-${uid()}`);
 const daysLeft = (dateStr) => {
   const one = new Date(new Date(dateStr).toDateString());
   const now = new Date(new Date().toDateString());
@@ -37,15 +36,6 @@ const exportBtn = $('#exportBtn');
 const importInput = $('#importInput');
 const installBtn = $('#installBtn');
 
-// online sync UI
-const shareIdInput = $('#shareIdInput');
-const loadOnlineBtn = $('#loadOnlineBtn');
-const saveOnlineBtn = $('#saveOnlineBtn');
-const shareLinkEl = $('#shareLink');
-
-// API base
-const API_BASE = '/api/trips/';
-
 // PWA install prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -62,113 +52,41 @@ installBtn?.addEventListener('click', async () => {
 });
 
 // add trip
-addTripBtn.addEventListener('click', () => {
+addTripBtn?.addEventListener('click', () => {
   const name = tripName.value.trim();
   const date = tripDate.value;
   if(!name || !date) return alert('여행 이름과 출발일을 입력하세요.');
   const items = (templates[templateSelect.value]||[]).map(t=>({id:uid(), text:t, done:false}));
   state.trips.push({ id: uid(), name, date, items });
-  persistAndRender();
+  save('trips', state.trips);
+  render();
   tripName.value = '';
   tripDate.value = '';
 });
 
 // export/import
-exportBtn.addEventListener('click', () => {
+exportBtn?.addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state.trips, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'travel-data.json';
   a.click();
 });
-importInput.addEventListener('change', async (e) => {
+importInput?.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   if(!file) return;
   try {
     const txt = await file.text();
     const data = JSON.parse(txt);
     if(!Array.isArray(data)) throw new Error('형식 오류');
-    state.trips = data; persistAndRender();
+    state.trips = data; save('trips', state.trips); render();
     alert('복원 완료!');
   } catch(err){
     alert('복원 실패: ' + err.message);
   } finally { e.target.value = ''; }
 });
 
-// online sync
-loadOnlineBtn?.addEventListener('click', async () => {
-  const id = shareIdInput.value.trim();
-  if(!id) return alert('공유코드를 입력하세요.');
-  try{
-    const data = await loadOnline(id);
-    if(!Array.isArray(data)) throw new Error('데이터 형식 오류');
-    state.trips = data; persistAndRender();
-    setShareId(id);
-    alert('온라인에서 불러왔습니다.');
-  }catch(err){
-    alert('불러오기 실패: ' + (err.message || '네트워크 오류'));
-  }
-});
-
-saveOnlineBtn?.addEventListener('click', async () => {
-  let id = shareIdInput.value.trim();
-  if(!id) id = genId();
-  try{
-    await saveOnline(id, state.trips);
-    setShareId(id);
-    alert('온라인에 저장되었습니다.');
-  }catch(err){
-    alert('저장 실패: ' + (err.message || '네트워크 오류'));
-  }
-});
-
-async function saveOnline(id, data){
-  const res = await fetch(API_BASE + encodeURIComponent(id), {
-    method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  if(!res.ok) throw new Error('서버 응답: ' + res.status);
-}
-
-async function loadOnline(id){
-  const res = await fetch(API_BASE + encodeURIComponent(id));
-  if(!res.ok) throw new Error(res.status === 404 ? '데이터가 없습니다.' : ('서버 응답: ' + res.status));
-  return res.json();
-}
-
-function setShareId(id){
-  shareIdInput.value = id;
-  const url = new URL(location.href);
-  url.searchParams.set('share', id);
-  history.replaceState(null, '', url);
-  if(shareLinkEl){
-    shareLinkEl.textContent = url.toString();
-  }
-}
-
-// auto-load if ?share=...
-(function initShareFromURL(){
-  const params = new URLSearchParams(location.search);
-  const id = params.get('share');
-  if(id){
-    shareIdInput && (shareIdInput.value = id);
-    setShareId(id);
-    // 자동 불러오기 (조용히 시도)
-    loadOnline(id).then(data=>{
-      if(Array.isArray(data)){ state.trips = data; persistAndRender(); }
-    }).catch(()=>{ /* 무시 */ });
-  }else if(shareLinkEl){
-    shareLinkEl.textContent = '';
-  }
-})();
-
-// render & helpers
-function persistAndRender(){
-  save('trips', state.trips);
-  render();
-}
-
+// render
 function render(){
   state.trips.sort((a,b)=> new Date(a.date) - new Date(b.date));
   tripList.innerHTML = '';
@@ -204,12 +122,16 @@ function openTrip(id){
   dialogTitle.textContent = `${trip.name} — 체크리스트`;
   dialogContent.innerHTML = '';
 
+  // 상단: 출발일, "아이템 추가" 입력 + 버튼
   const top = document.createElement('div');
   top.className = 'flex flex-wrap items-center gap-2 justify-between';
   top.innerHTML = `
-    <div class="text-sm text-slate-500">출발일: ${trip.date} · ${daysLeft(trip.date)===0?'D-DAY':daysLeft(trip.date)>0?`D-${daysLeft(trip.date)}`:`+${Math.abs(daysLeft(trip.date))}`}</div>
+    <div class="text-sm text-slate-500">
+      출발일: ${trip.date} · ${daysLeft(trip.date)===0?'D-DAY':daysLeft(trip.date)>0?`D-${daysLeft(trip.date)}`:`+${Math.abs(daysLeft(trip.date))}`}
+    </div>
     <div class="flex items-center gap-2">
-      <input class="input" id="newItemInput" placeholder="아이템 추가 (엔터)" />
+      <input class="input" id="newItemInput" placeholder="아이템 추가 (예: 칫솔)" />
+      <button class="btn-secondary" id="addItemBtn">추가</button>
       <button class="btn-secondary" id="clearDoneBtn">완료 삭제</button>
     </div>`;
   dialogContent.appendChild(top);
@@ -225,19 +147,27 @@ function openTrip(id){
   dialogContent.appendChild(stats);
   updateStats(trip, stats);
 
-  // handlers
-  top.querySelector('#newItemInput').addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){
-      const text = e.target.value.trim();
-      if(text){ trip.items.push({id:uid(), text, done:false}); persistAndRenderDialog(trip, list, stats); e.target.value=''; }
-    }
-  });
+  // 입력핸들러: 엔터키 & 버튼 클릭 둘 다 지원
+  const newItemInput = top.querySelector('#newItemInput');
+  const addItemBtn = top.querySelector('#addItemBtn');
+  const addItem = () => {
+    const text = newItemInput.value.trim();
+    if(!text) return;
+    trip.items.push({ id: uid(), text, done: false });
+    save('trips', state.trips);
+    newItemInput.value = '';
+    rerenderList();
+  };
+  newItemInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addItem(); });
+  addItemBtn.addEventListener('click', addItem);
+
   top.querySelector('#clearDoneBtn').addEventListener('click', ()=>{
-    trip.items = trip.items.filter(i=>!i.done); persistAndRenderDialog(trip, list, stats);
+    trip.items = trip.items.filter(i=>!i.done);
+    save('trips', state.trips);
+    rerenderList();
   });
 
-  function persistAndRenderDialog(trip, list, stats){
-    save('trips', state.trips);
+  function rerenderList(){
     list.innerHTML='';
     trip.items.forEach(item => list.appendChild(renderItem(trip, item)));
     updateStats(trip, stats);
@@ -259,7 +189,9 @@ function renderItem(trip, item){
   const [chk, , delBtn] = li.children;
   chk.addEventListener('change', ()=>{ item.done = chk.checked; save('trips', state.trips); });
   delBtn.addEventListener('click', ()=>{
-    trip.items = trip.items.filter(i=>i.id!==item.id); save('trips', state.trips); li.remove();
+    trip.items = trip.items.filter(i=>i.id!==item.id);
+    save('trips', state.trips);
+    li.remove();
   });
   return li;
 }
@@ -275,22 +207,29 @@ function duplicateTrip(id){
   copy.id = uid();
   copy.name = t.name + ' (복사본)';
   copy.items.forEach(i=> i.id = uid());
-  state.trips.push(copy); persistAndRender();
+  state.trips.push(copy);
+  save('trips', state.trips);
+  render();
 }
 
 function editTrip(id){
   const t = state.trips.find(x=>x.id===id); if(!t) return;
   const name = prompt('여행 이름', t.name) ?? t.name;
   const date = prompt('출발일 (YYYY-MM-DD)', t.date) ?? t.date;
-  if(name && date){ t.name = name; t.date = date; persistAndRender(); }
+  if(name && date){
+    t.name = name; t.date = date;
+    save('trips', state.trips);
+    render();
+  }
 }
 
 function deleteTrip(id){
   if(!confirm('삭제하시겠어요?')) return;
-  state.trips = state.trips.filter(t=>t.id!==id); persistAndRender();
+  state.trips = state.trips.filter(t=>t.id!==id);
+  save('trips', state.trips);
+  render();
 }
 
 function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
-// first render
 render();
