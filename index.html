@@ -6,8 +6,12 @@
   <title>여행 D-데이 & 체크리스트</title>
   <meta name="description" content="여행 일정 D-데이와 짐꾸리기 체크리스트를 기기별로 관리할 수 있는 간단한 웹앱입니다." />
   <meta name="theme-color" content="#0ea5e9" />
+
+  <!-- 아이콘 -->
   <link rel="icon" href="/assets/icons/icon-192.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/assets/icons/icon-192.svg" />
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -23,14 +27,19 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="/assets/style.css" />
+
+  <!-- 스타일 (캐시 방지 v=3) -->
+  <link rel="stylesheet" href="/assets/style.css?v=3" />
 </head>
+
 <body class="bg-gradient-to-b from-sky-50 to-white text-slate-800 min-h-screen antialiased">
 
   <!-- 헤더 -->
   <header class="sticky top-0 z-20 backdrop-blur bg-white/70 border-b border-slate-200/60">
     <div class="mx-auto max-w-6xl px-4">
       <div class="flex items-center justify-between py-3">
+
+        <!-- 로고 -->
         <div class="flex items-center gap-3">
           <div class="flex items-center justify-center h-8 w-8 rounded-2xl bg-sky-500 text-white text-lg font-bold shadow-soft">
             ✈
@@ -40,7 +49,7 @@
           </h1>
         </div>
 
-        <!-- 데스크톱 버튼 -->
+        <!-- 데스크톱 버튼들 -->
         <div class="hidden sm:flex items-center gap-2">
           <button id="installBtn" class="btn-secondary hidden">앱 설치</button>
           <button id="exportBtn" class="btn-secondary">백업</button>
@@ -60,13 +69,16 @@
         <div class="sm:hidden">
           <details class="relative">
             <summary class="btn-secondary select-none list-none">메뉴</summary>
+
             <div class="absolute right-0 mt-2 w-44 rounded-2xl bg-white/95 shadow-soft ring-1 ring-slate-200 p-2 space-y-1">
               <button id="installBtn" class="btn-menu hidden w-full">앱 설치</button>
               <button id="exportBtn" class="btn-menu w-full">백업</button>
+
               <label class="btn-menu w-full cursor-pointer">
                 복원
                 <input id="importInput" type="file" accept="application/json" class="hidden" />
               </label>
+
               <label class="btn-menu w-full cursor-pointer">
                 병합 복원
                 <input id="importMergeInput" type="file" accept="application/json" class="hidden" />
@@ -74,25 +86,31 @@
             </div>
           </details>
         </div>
+
       </div>
     </div>
   </header>
 
   <!-- 메인 -->
   <main class="mx-auto max-w-6xl px-4 pb-16">
-    <!-- 여행 추가 폼 -->
+
+    <!-- 여행 추가 -->
     <section class="pt-6 sm:pt-10">
       <div class="rounded-3xl bg-white/70 shadow-soft ring-1 ring-slate-200 px-4 py-5 sm:px-6 sm:py-6">
         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+
+          <!-- 여행 이름 -->
           <div class="grow">
             <label class="label">여행 이름</label>
             <input id="tripName" class="input" placeholder="예: 스페인 가을 여행" />
           </div>
 
+          <!-- 출발일 -->
           <div class="w-full sm:w-48">
             <label class="label">출발일</label>
             <div class="relative">
               <input id="tripDate" type="date" class="input pr-10" />
+
               <!-- 항상 보이는 달력 아이콘 -->
               <button
                 type="button"
@@ -105,6 +123,7 @@
             </div>
           </div>
 
+          <!-- 템플릿 선택 -->
           <div class="w-full sm:w-48">
             <label class="label">체크리스트 템플릿</label>
             <select id="templateSelect" class="input">
@@ -115,6 +134,7 @@
             </select>
           </div>
 
+          <!-- 버튼 -->
           <button id="addTripBtn" class="btn-primary h-11 sm:h-[42px] sm:self-auto">
             여행 추가
           </button>
@@ -138,10 +158,9 @@
     <dialog id="tripDialog" class="modal">
       <div class="modal-box">
         <header class="flex items-center justify-between mb-3">
-          <h2 id="dialogTitle" class="text-base sm:text-lg font-semibold">
-            여행 상세
-          </h2>
-          <!-- X 버튼: 어떤 환경에서도 보이도록 ASCII 'X' 사용 -->
+          <h2 id="dialogTitle" class="text-base sm:text-lg font-semibold"></h2>
+
+          <!-- X 버튼 (ASCII → 모든 환경에서 표시됨) -->
           <button
             id="closeDialogBtn"
             class="btn-icon text-slate-600"
@@ -151,17 +170,22 @@
             X
           </button>
         </header>
+
         <div id="dialogContent" class="space-y-3"></div>
       </div>
     </dialog>
+
   </main>
 
   <footer class="mx-auto max-w-6xl px-4 pb-10 text-xs text-slate-500">
     <div class="rounded-2xl bg-white/60 ring-1 ring-slate-200 p-3 text-center">
-      이 페이지에서 입력한 내용은 이 브라우저의 로컬 저장소에 보관됩니다. 백업 파일로 다른 기기와도 공유해 보세요.
+      이 페이지에서 입력한 내용은 이 브라우저의 로컬 저장소에 보관됩니다.  
+      백업 파일로 다른 기기와도 공유해 보세요.
     </div>
   </footer>
 
-  <script src="/assets/app.js?v=8"></script>
+  <!-- JS (캐시 방지 v=10) -->
+  <script src="/assets/app.js?v=10"></script>
+
 </body>
 </html>
