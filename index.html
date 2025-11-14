@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>여행 D-데이 & 짐 체크리스트</title>
-  <meta name="description" content="간단한 여행 일정 D-데이와 짐꾸리기 체크리스트를 관리하세요. 오프라인에서도 작동합니다." />
-  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>여행 D-데이 & 체크리스트</title>
+  <meta name="description" content="여행 일정 D-데이와 짐꾸리기 체크리스트를 기기별로 관리할 수 있는 간단한 웹앱입니다." />
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="icon" href="/assets/icons/icon-192.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/assets/icons/icon-192.svg" />
@@ -18,32 +17,42 @@
             sans: ['Inter','Pretendard','Noto Sans KR','system-ui','Apple SD Gothic Neo','Segoe UI','Roboto','sans-serif']
           },
           boxShadow: {
-            soft: '0 8px 30px rgba(2, 24, 57, .08)'
+            soft: '0 8px 30px rgba(2,16,40,.08)'
           }
         }
       }
-    }
+    };
   </script>
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
 <body class="bg-gradient-to-b from-sky-50 to-white text-slate-800 min-h-screen antialiased">
-  <header class="sticky top-0 z-20 backdrop-blur bg-white/60 border-b border-slate-200/60">
+
+  <!-- 헤더 -->
+  <header class="sticky top-0 z-20 backdrop-blur bg-white/70 border-b border-slate-200/60">
     <div class="mx-auto max-w-6xl px-4">
       <div class="flex items-center justify-between py-3">
         <div class="flex items-center gap-3">
-          <img src="/assets/icons/icon-192.svg" alt="" class="h-7 w-7">
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight">여행 D-데이 & 체크리스트</h1>
+          <div class="flex items-center justify-center h-8 w-8 rounded-2xl bg-sky-500 text-white text-lg font-bold shadow-soft">
+            ✈
+          </div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight">
+            여행 D-데이 & 체크리스트
+          </h1>
         </div>
 
-        <!-- ✅ GitHub 버튼 제거 -->
+        <!-- 데스크톱 버튼 -->
         <div class="hidden sm:flex items-center gap-2">
           <button id="installBtn" class="btn-secondary hidden">앱 설치</button>
           <button id="exportBtn" class="btn-secondary">백업</button>
+
           <label class="btn-secondary cursor-pointer">
-            복원<input id="importInput" type="file" accept="application/json" class="hidden" />
+            복원
+            <input id="importInput" type="file" accept="application/json" class="hidden" />
           </label>
+
           <label class="btn-secondary cursor-pointer">
-            병합 복원<input id="importMergeInput" type="file" accept="application/json" class="hidden" />
+            병합 복원
+            <input id="importMergeInput" type="file" accept="application/json" class="hidden" />
           </label>
         </div>
 
@@ -55,10 +64,12 @@
               <button id="installBtn" class="btn-menu hidden w-full">앱 설치</button>
               <button id="exportBtn" class="btn-menu w-full">백업</button>
               <label class="btn-menu w-full cursor-pointer">
-                복원<input id="importInput" type="file" accept="application/json" class="hidden" />
+                복원
+                <input id="importInput" type="file" accept="application/json" class="hidden" />
               </label>
               <label class="btn-menu w-full cursor-pointer">
-                병합 복원<input id="importMergeInput" type="file" accept="application/json" class="hidden" />
+                병합 복원
+                <input id="importMergeInput" type="file" accept="application/json" class="hidden" />
               </label>
             </div>
           </details>
@@ -67,19 +78,34 @@
     </div>
   </header>
 
+  <!-- 메인 -->
   <main class="mx-auto max-w-6xl px-4 pb-16">
+    <!-- 여행 추가 폼 -->
     <section class="pt-6 sm:pt-10">
       <div class="rounded-3xl bg-white/70 shadow-soft ring-1 ring-slate-200 px-4 py-5 sm:px-6 sm:py-6">
         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
           <div class="grow">
             <label class="label">여행 이름</label>
-            <input id="tripName" class="input" placeholder="예: 스페인 가을여행" required />
+            <input id="tripName" class="input" placeholder="예: 스페인 가을 여행" />
           </div>
-          <div>
+
+          <div class="w-full sm:w-48">
             <label class="label">출발일</label>
-            <input id="tripDate" type="date" class="input" required />
+            <div class="relative">
+              <input id="tripDate" type="date" class="input pr-10" />
+              <!-- 항상 보이는 달력 아이콘 -->
+              <button
+                type="button"
+                id="tripDateIcon"
+                class="absolute inset-y-0 right-3 my-auto text-slate-400 text-sm"
+                aria-label="달력 열기"
+              >
+                📅
+              </button>
+            </div>
           </div>
-          <div>
+
+          <div class="w-full sm:w-48">
             <label class="label">체크리스트 템플릿</label>
             <select id="templateSelect" class="input">
               <option value="basic">기본</option>
@@ -88,40 +114,54 @@
               <option value="business">출장</option>
             </select>
           </div>
-          <button id="addTripBtn" class="btn-primary h-11 sm:h-[42px] sm:self-auto">여행 추가</button>
+
+          <button id="addTripBtn" class="btn-primary h-11 sm:h-[42px] sm:self-auto">
+            여행 추가
+          </button>
         </div>
-        <p id="formHelp" class="mt-2 text-[13px] text-rose-600 hidden">여행 이름과 출발일을 입력해 주세요.</p>
+
+        <p id="formHelp" class="mt-2 text-[13px] text-rose-600 hidden">
+          여행 이름과 출발일을 입력해 주세요.
+        </p>
+        <p class="mt-2 text-[13px] text-slate-500">
+          이 브라우저에 자동 저장됩니다. 백업/복원 기능으로 다른 기기로 옮길 수 있어요.
+        </p>
       </div>
     </section>
 
+    <!-- 여행 목록 -->
     <section class="mt-6 sm:mt-8">
       <ul id="tripList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></ul>
     </section>
 
+    <!-- 체크리스트 모달 -->
     <dialog id="tripDialog" class="modal">
       <div class="modal-box">
         <header class="flex items-center justify-between mb-3">
-          <h2 id="dialogTitle" class="text-base sm:text-lg font-semibold">여행 상세</h2>
-          <button id="closeDialogBtn" class="btn-icon" title="닫기" aria-label="닫기">✕</button>
+          <h2 id="dialogTitle" class="text-base sm:text-lg font-semibold">
+            여행 상세
+          </h2>
+          <!-- X 버튼: 어떤 환경에서도 보이도록 ASCII 'X' 사용 -->
+          <button
+            id="closeDialogBtn"
+            class="btn-icon text-slate-600"
+            title="닫기"
+            aria-label="닫기"
+          >
+            X
+          </button>
         </header>
-        <div class="space-y-3" id="dialogContent"></div>
+        <div id="dialogContent" class="space-y-3"></div>
       </div>
     </dialog>
   </main>
 
   <footer class="mx-auto max-w-6xl px-4 pb-10 text-xs text-slate-500">
     <div class="rounded-2xl bg-white/60 ring-1 ring-slate-200 p-3 text-center">
-      모든 데이터는 브라우저(LocalStorage)에 저장됩니다. 오프라인에서도 사용 가능.
+      이 페이지에서 입력한 내용은 이 브라우저의 로컬 저장소에 보관됩니다. 백업 파일로 다른 기기와도 공유해 보세요.
     </div>
   </footer>
 
-  <script src="/assets/app.js?v=5" type="module"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
-      });
-    }
-  </script>
+  <script src="/assets/app.js?v=8"></script>
 </body>
 </html>
