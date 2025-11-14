@@ -186,15 +186,18 @@
 /* 모바일에서 출발일 칸(날짜 입력) 살짝 낮게 */
 @media (max-width: 640px) {
   #tripDate {
-    height: 36px;        /* 기본 42px → 36px */
+    -webkit-appearance: none;  /* ✅ iOS 네이티브 date UI 제거 */
+    appearance: none;
+    height: 38px;              /* 데스크톱보다 살짝 낮게 */
+    line-height: 38px;
     font-size: 13px;
     padding-top: 0;
     padding-bottom: 0;
   }
 
-  /* 아이콘 위치도 살짝 같이 내려주기 */
   #tripDateIcon {
     font-size: 13px;
   }
 }
+
 
