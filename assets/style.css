@@ -183,3 +183,18 @@
   background:linear-gradient(90deg,#0ea5e9,#60a5fa);
   transition:width .25s;
 }
+/* 모바일에서 출발일 칸(날짜 입력) 살짝 낮게 */
+@media (max-width: 640px) {
+  #tripDate {
+    height: 36px;        /* 기본 42px → 36px */
+    font-size: 13px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  /* 아이콘 위치도 살짝 같이 내려주기 */
+  #tripDateIcon {
+    font-size: 13px;
+  }
+}
+
