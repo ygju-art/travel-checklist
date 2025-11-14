@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Travel-Check 소개</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 구글 폰트 (선택 사항) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fdf7e7 0, #f5f7fb 40%, #edf0ff 100%);
+      color: #1f2933;
+      line-height: 1.6;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .page-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    header {
+      border-radius: 24px;
+      padding: 28px 24px;
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      color: #ffffff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+    }
+
+    header .title-block {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 span.logo-mark {
+      font-size: 1.8rem;
+    }
+
+    header p.subtitle {
+      font-size: 0.98rem;
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+
+    header .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.2);
+      font-size: 0.85rem;
+    }
+
+    header .tagline span.badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+    }
+
+    .hero-illustration {
+      min-width: 220px;
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-card {
+      width: 220px;
+      border-radius: 24px;
+      padding: 18px 16px;
+      background: rgba(15, 23, 42, 0.16);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .hero-card-title {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-card-title span {
+      font-size: 1.1rem;
+    }
+
+    .hero-card-main {
+      background: rgba(15, 23, 42, 0.54);
+      border-radius: 18px;
+      padding: 12px 10px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+    }
+
+    .hero-card-main-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .hero-card-main-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .hero-card-label {
+      opacity: 0.8;
+    }
+
+    .hero-card-value {
+      font-weight: 600;
+    }
+
+    .hero-card-footer {
+      font-size: 0.78rem;
+      opacity: 0.9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hero-card-footer span.dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      margin-right: 6px;
+    }
+
+    main {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: 2fr 1.4fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    section {
+      margin-bottom: 22px;
+    }
+
+    .section-card {
+      background: #ffffffcc;
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 20px 18px 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #111827;
+    }
+
+    .section-heading .icon {
+      font-size: 1.3rem;
+    }
+
+    .section-body p {
+      font-size: 0.93rem;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .section-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 6px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .feature-list li span.bullet {
+      margin-top: 3px;
+      font-size: 0.9rem;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #ecfeff;
+      color: #0f766e;
+      border: 1px solid #99f6e4;
+      margin-left: 4px;
+    }
+
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .stack-item {
+      font-size: 0.85rem;
+      padding: 7px 8px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .stack-item strong {
+      font-size: 0.86rem;
+    }
+
+    .howto-steps {
+      list-style: none;
+      margin-top: 6px;
+    }
+
+    .howto-steps li {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .howto-steps li span.step {
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    .side-column section {
+      margin-bottom: 18px;
+    }
+
+    .link-button-wrap {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      background: #ffffff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+    }
+
+    .btn-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.14);
+    }
+
+    .btn-link.main {
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    footer {
+      margin-top: 26px;
+      font-size: 0.8rem;
+      text-align: center;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header>
+      <div class="title-block">
+        <h1>
+          <span class="logo-mark">✈️</span>
+          Travel-Check
+        </h1>
+        <p class="subtitle">
+          여행 날짜까지 남은 D-Day와 체크리스트를 한 페이지에서 관리하는
+          미니 웹서비스입니다.  
+          간단하지만 실제 여행 준비에 바로 활용할 수 있도록 구현되었습니다.
+        </p>
+        <div class="tagline">
+          <span class="badge-dot"></span>
+          <span>브라우저만 있으면 어디서나 사용하는 가벼운 여행 준비 도구</span>
+        </div>
+      </div>
+      <div class="hero-illustration">
+        <div class="hero-card">
+          <div class="hero-card-title">
+            <span>🌍</span> 여행 준비 스냅샷
+          </div>
+          <div class="hero-card-main">
+            <div class="hero-card-main-row">
+              <span class="hero-card-label">남은 일정(D-Day)</span>
+              <span class="hero-card-value">자동 계산</span>
+            </div>
+            <div class="hero-card-main-row">
+              <span class="hero-card-label">체크리스트</span>
+              <span class="hero-card-value">진행도 표시</span>
+            </div>
+            <div class="hero-card-main-row">
+              <span class="hero-card-label">백업/복원</span>
+              <span class="hero-card-value">CSV · JSON</span>
+            </div>
+          </div>
+          <div class="hero-card-footer">
+            <span><span class="dot"></span>브라우저 로컬에 저장</span>
+            <span>반응형 · 모바일 지원</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="main-column">
+        <!-- 섹션 1: 사이트 개요 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">📌</span>
+            <span>사이트 개요</span>
+          </div>
+          <div class="section-body">
+            <p>
+              <strong>Travel-Check</strong>는 여행을 준비하면서
+              <strong>D-Day와 준비물 체크리스트를 한 화면에서 관리</strong>할 수 있도록 만든
+              무료 웹사이트입니다.
+            </p>
+            <p>
+              별도의 회원가입이나 설치 없이 브라우저만 있으면 바로 사용할 수 있도록 설계했고,  
+              실제 여행 준비를 하면서 필요하다고 느낀 기능들을 중심으로 구현했습니다.
+            </p>
+            <div class="pill-list">
+              <span class="pill">여행 D-Day 자동 계산</span>
+              <span class="pill">체크리스트 진행도 표시</span>
+              <span class="pill">CSV · JSON 백업/복원</span>
+              <span class="pill">Drag & Drop 정렬</span>
+              <span class="pill">모바일 최적화</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 2: 구현된 주요 기능 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">🧩</span>
+            <span>구현된 주요 기능</span>
+          </div>
+          <div class="section-body">
+            <ul class="feature-list">
+              <li>
+                <span class="bullet">✅</span>
+                <span>
+                  <strong>D-Day 계산 기능</strong><br />
+                  - 여행 출발 날짜를 입력하면 남은 일수를 자동으로 계산하여 표시합니다.<br />
+                  - 여행이 가까워질수록 직관적으로 남은 기간을 확인할 수 있습니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+              <li>
+                <span class="bullet">📝</span>
+                <span>
+                  <strong>여행 준비 체크리스트</strong><br />
+                  - 준비해야 할 항목들을 자유롭게 추가/수정/삭제할 수 있습니다.<br />
+                  - 각 항목을 체크하면 완료 처리되며, 전체 진행도가 상단 진행 바(Progress Bar)로 표시됩니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+              <li>
+                <span class="bullet">🔃</span>
+                <span>
+                  <strong>Drag & Drop 순서 변경</strong><br />
+                  - 체크리스트 항목의 우선순위를 사용자가 직접 끌어서(Drag & Drop) 조정할 수 있습니다.<br />
+                  - 중요한 준비물은 위로 올려 한눈에 볼 수 있습니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+              <li>
+                <span class="bullet">💾</span>
+                <span>
+                  <strong>CSV 내보내기 & JSON 백업/복원</strong><br />
+                  - 현재 체크리스트를 <strong>CSV 파일로 내보내기</strong> 기능을 통해 저장할 수 있습니다.<br />
+                  - JSON 형식으로 전체 데이터를 백업/복원할 수 있어, 브라우저를 바꾸더라도 동일한 리스트를 다시 불러올 수 있습니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+              <li>
+                <span class="bullet">📱</span>
+                <span>
+                  <strong>반응형 UI 및 모바일 최적화</strong><br />
+                  - PC는 물론, 스마트폰 화면에서도 보기 좋게 구성된 반응형 디자인을 적용했습니다.<br />
+                  - 실제 여행 중에도 모바일 브라우저로 접속해 체크리스트를 바로 확인할 수 있습니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+              <li>
+                <span class="bullet">🧭</span>
+                <span>
+                  <strong>브라우저 로컬 저장 기반</strong><br />
+                  - 체크리스트 데이터는 브라우저의 로컬 스토리지에 저장되도록 구현했습니다.<br />
+                  - 간단한 사용성을 유지하면서도, 페이지를 새로고침해도 데이터가 유지됩니다.
+                  <span class="feature-tag">완료</span>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 섹션 3: 구현 작업 요약 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">🛠️</span>
+            <span>구현 작업 요약</span>
+          </div>
+          <div class="section-body">
+            <p>
+              이 사이트는 다음과 같은 흐름으로 구현 및 구성 작업을 진행했습니다.
+            </p>
+            <ul class="feature-list">
+              <li>
+                <span class="bullet">1️⃣</span>
+                <span>
+                  <strong>아이디어 설계</strong> – “여행 준비에 진짜로 쓰는 D-Day + 체크리스트”를 목표로  
+                  필요한 화면 구성과 필수 기능을 정의했습니다.
+                </span>
+              </li>
+              <li>
+                <span class="bullet">2️⃣</span>
+                <span>
+                  <strong>프론트엔드 구현</strong> – HTML, CSS, JavaScript만으로  
+                  D-Day 계산, 체크리스트, Drag & Drop, 진행도 표시, CSV/JSON 기능을 구현했습니다.
+                </span>
+              </li>
+              <li>
+                <span class="bullet">3️⃣</span>
+                <span>
+                  <strong>디자인 및 UI 다듬기</strong> – 여행 느낌의 색상과 레이아웃, 모바일 대응을 적용해  
+                  실제 사용 시 가독성과 사용성을 고려해 수정·보완했습니다.
+                </span>
+              </li>
+              <li>
+                <span class="bullet">4️⃣</span>
+                <span>
+                  <strong>배포 및 테스트</strong> – Cloudflare Pages를 통해  
+                  <code>travel-check.pages.dev</code> 도메인으로 배포하고,  
+                  PC/모바일 환경에서 직접 테스트하며 버그를 보완했습니다.
+                </span>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- 우측 사이드 컬럼 -->
+      <div class="side-column">
+        <!-- 섹션: 기술 스택 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">💻</span>
+            <span>기술 스택 & 구조</span>
+          </div>
+          <div class="section-body">
+            <p>가볍고 단순한 구조를 유지하면서도, 실제 서비스처럼 배포할 수 있도록 구성했습니다.</p>
+            <div class="stack-grid">
+              <div class="stack-item">
+                <strong>프론트엔드</strong><br />
+                HTML + CSS + JavaScript (Vanilla)
+              </div>
+              <div class="stack-item">
+                <strong>호스팅</strong><br />
+                Cloudflare Pages 정적 웹 호스팅
+              </div>
+              <div class="stack-item">
+                <strong>데이터 저장</strong><br />
+                브라우저 LocalStorage + JSON 파일 백업
+              </div>
+              <div class="stack-item">
+                <strong>버전 관리</strong><br />
+                GitHub 저장소를 사용한 코드 관리
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션: 사용 방법 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">📖</span>
+            <span>간단 사용 방법</span>
+          </div>
+          <div class="section-body">
+            <ul class="howto-steps">
+              <li>
+                <span class="step">1</span>
+                <span>
+                  사이트에 접속하여 여행 출발 날짜를 입력하면 D-Day가 자동으로 계산됩니다.
+                </span>
+              </li>
+              <li>
+                <span class="step">2</span>
+                <span>
+                  준비해야 할 항목들을 체크리스트에 추가하고, 우선순위에 따라 Drag & Drop으로 순서를 조정합니다.
+                </span>
+              </li>
+              <li>
+                <span class="step">3</span>
+                <span>
+                  여행 준비를 하면서 완료된 항목은 체크 표시를 하고, 상단 진행도를 확인하며 전체 진행 상황을 확인합니다.
+                </span>
+              </li>
+              <li>
+                <span class="step">4</span>
+                <span>
+                  필요할 경우 CSV 내보내기나 JSON 백업으로 현재 상태를 파일로 저장해 두었다가, 다른 브라우저나 PC에서 복원해 사용할 수 있습니다.
+                </span>
+              </li>
+            </ul>
+
+            <div class="link-button-wrap">
+              <a class="btn-link main" href="https://travel-check.pages.dev" target="_blank" rel="noopener">
+                🔗 Travel-Check 바로 가기
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션: 활용 포인트 -->
+        <section class="section-card">
+          <div class="section-heading">
+            <span class="icon">✨</span>
+            <span>활용 포인트</span>
+          </div>
+          <div class="section-body">
+            <p>
+              간단한 개인 프로젝트 수준을 넘어, 실제 서비스처럼  
+              <strong>아이디어 → 구현 → 배포 → 실사용 테스트</strong>까지  
+              한 사이클을 경험할 수 있는 예제이기도 합니다.
+            </p>
+            <p>
+              여행 준비용으로 직접 사용하면서 기능을 추가하거나,  
+              향후 로그인/다중 여행 일정 관리 등으로 확장할 수도 있습니다.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      Travel-Check · 여행 준비 D-Day & 체크리스트 도구
+    </footer>
+  </div>
+</body>
+</html>
